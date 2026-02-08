@@ -17,38 +17,11 @@ import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# ── Anthropic pricing (per million tokens) ──────────────────────────
-# Update these if pricing changes
-PRICING = {
-    "claude-opus-4-6": {
-        "label": "Opus 4.6",
-        "input": 15.0,
-        "output": 75.0,
-        "cache_read": 1.875,
-        "cache_write": 18.75,
-    },
-    "claude-opus-4-5-20251101": {
-        "label": "Opus 4.5",
-        "input": 15.0,
-        "output": 75.0,
-        "cache_read": 1.875,
-        "cache_write": 18.75,
-    },
-    "claude-sonnet-4-5-20250929": {
-        "label": "Sonnet 4.5",
-        "input": 3.0,
-        "output": 15.0,
-        "cache_read": 0.30,
-        "cache_write": 3.75,
-    },
-}
-
-DEFAULT_PRICING = {
-    "label": "Unknown Model",
-    "input": 15.0,
-    "output": 75.0,
-    "cache_read": 1.875,
-    "cache_write": 18.75,
+# ── Model display labels ─────────────────────────────────────────────
+MODEL_LABELS = {
+    "claude-opus-4-6": "Opus 4.6",
+    "claude-opus-4-5-20251101": "Opus 4.5",
+    "claude-sonnet-4-5-20250929": "Sonnet 4.5",
 }
 
 
@@ -85,15 +58,6 @@ def load_stats(claude_dir: Path) -> dict:
     with open(stats_path) as f:
         return json.load(f)
 
-
-def estimate_cost(model: str, usage: dict) -> float:
-    p = PRICING.get(model, DEFAULT_PRICING)
-    cost = 0.0
-    cost += usage.get("inputTokens", 0) / 1_000_000 * p["input"]
-    cost += usage.get("outputTokens", 0) / 1_000_000 * p["output"]
-    cost += usage.get("cacheReadInputTokens", 0) / 1_000_000 * p["cache_read"]
-    cost += usage.get("cacheCreationInputTokens", 0) / 1_000_000 * p["cache_write"]
-    return cost
 
 
 def format_tokens(n: int) -> str:
@@ -165,7 +129,6 @@ def generate_html(stats: dict, prompts_by_day: dict[str, int], user_name: str) -
     # ── Computed stats ──
     total_prompts = sum(prompts_by_day.values())
     total_tool_calls = sum(d.get("toolCallCount", 0) for d in daily)
-    total_cost = sum(estimate_cost(m, u) for m, u in model_usage.items())
     total_input = sum(u.get("inputTokens", 0) for u in model_usage.values())
     total_output = sum(u.get("outputTokens", 0) for u in model_usage.values())
     total_cache_read = sum(
@@ -229,7 +192,7 @@ def generate_html(stats: dict, prompts_by_day: dict[str, int], user_name: str) -
 
     token_datasets_js = []
     for i, model in enumerate(all_models):
-        label = PRICING.get(model, {}).get("label", model)
+        label = MODEL_LABELS.get(model, model)
         color = model_colors.get(
             model, fallback_colors[i % len(fallback_colors)]
         )
@@ -258,7 +221,7 @@ def generate_html(stats: dict, prompts_by_day: dict[str, int], user_name: str) -
     model_pie_data = []
     model_pie_colors = []
     for model, usage in model_usage.items():
-        label = PRICING.get(model, {}).get("label", model)
+        label = MODEL_LABELS.get(model, model)
         total = usage.get("inputTokens", 0) + usage.get("outputTokens", 0)
         color = model_colors.get(model, "#94a3b8")
         model_pie_labels.append(label)
@@ -277,7 +240,7 @@ def generate_html(stats: dict, prompts_by_day: dict[str, int], user_name: str) -
     # Token breakdown by model
     cost_rows = ""
     for model, usage in sorted(model_usage.items()):
-        label = PRICING.get(model, {}).get("label", model)
+        label = MODEL_LABELS.get(model, model)
         inp = usage.get("inputTokens", 0)
         out = usage.get("outputTokens", 0)
         cr = usage.get("cacheReadInputTokens", 0)
@@ -407,8 +370,6 @@ def generate_html(stats: dict, prompts_by_day: dict[str, int], user_name: str) -
   }}
   th {{ color: var(--muted); font-weight: 500; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }}
   td:first-child, th:first-child {{ text-align: left; }}
-  .cost {{ color: var(--green); font-weight: 600; }}
-
   .footer {{
     text-align: center;
     color: var(--muted);
