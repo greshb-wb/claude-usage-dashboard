@@ -5,6 +5,8 @@ A Python script that generates a shareable HTML dashboard from your local [Claud
 ![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue)
 ![No Dependencies](https://img.shields.io/badge/dependencies-none-green)
 
+![Dashboard Screenshot](screenshot.png)
+
 ## What it shows
 
 - **Prompts** — how many times you've talked to Claude
