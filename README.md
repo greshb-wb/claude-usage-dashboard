@@ -5,7 +5,9 @@ A Python script that generates a shareable HTML dashboard from your local [Claud
 ![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue)
 ![No Dependencies](https://img.shields.io/badge/dependencies-none-green)
 
-![Dashboard Screenshot](screenshot.png)
+<p align="center">
+  <img src="screenshot.png" alt="Dashboard Screenshot" width="700">
+</p>
 
 ## What it shows
 
